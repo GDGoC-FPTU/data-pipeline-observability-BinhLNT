@@ -47,6 +47,17 @@ def extract(file_path):
     #   with open(file_path, 'r') as f:
     #       data = json.load(f)
     #   return data
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        print(f"Extracted {len(data)} records.")
+        return data
+    except FileNotFoundError:
+        print(f"Error: File {file_path} not found.")
+        return []
+    except json.JSONDecodeError:
+        print(f"Error: Failed to decode JSON from {file_path}.")
+        return []
     pass
 
 
@@ -72,6 +83,15 @@ def validate(data):
     # TODO: Lap qua data, kiem tra tung record
     # Giu lai record hop le, dem record loi
 
+    for record in data:
+        price = record.get('price', 0)
+        category = record.get('category')
+
+        if price > 0 and category and str(category).strip():
+            valid_records.append(record)
+        else:
+            error_count += 1
+
     print(f"Validation complete. Valid: {len(valid_records)}, Errors: {error_count}")
     return valid_records
 
@@ -95,6 +115,17 @@ def transform(data):
         pd.DataFrame: DataFrame da duoc transform
     """
     # TODO: Tao DataFrame va ap dung transformations
+
+    if not data:
+        return None
+
+    df = pd.DataFrame(data)
+
+    df['discounted_price'] = df['price'] * 0.9
+    df['category'] = df['category'].astype(str).str.title()
+    df['processed_at'] = datetime.datetime.now().isoformat()
+
+    return df
     pass
 
 
@@ -106,6 +137,7 @@ def load(df, output_path):
        - df.to_csv(output_path, index=False)
     """
     # TODO: Luu DataFrame ra CSV
+    df.to_csv(output_path, index=False)
     print(f"Data saved to {output_path}")
 
 
